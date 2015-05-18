@@ -135,11 +135,19 @@ methods (Access=public)
             end
         end
         
-        function momentos=getMomentos(e,n)
-            % Se obtienen los momentos de un nodo de la placa, según el
-            % primer elemento de la lista elementos del nodo          
+        function momentos=getMomentosNodo(e,n)
+            % Se obtienen los momentos de un nodo de la placa, según la
+            % media de todos los elementos que incluyen el nodo
             elems=e.nodos(n).getElementos();
-            momentos=elems(1).obtenerMomentos([e.nodos(n).getX(),e.nodos(n).getY()]);
+            momentosMatriz=[];
+            for i=1:length(elems)
+            momentosMatriz=[momentosMatriz elems(i).obtenerMomentos([e.nodos(n).getX(),e.nodos(n).getY()])];
+            end
+            momentos=[0;0;0];
+            for i=1:size(momentosMatriz,2)
+                momentos=momentos+momentosMatriz(:,i);
+            end
+            momentos=momentos/i;
         end
         
         function desp=getDesp(e,numnodo)

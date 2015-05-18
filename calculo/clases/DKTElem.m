@@ -27,17 +27,17 @@ classdef DKTElem < handle
     properties(GetAccess = 'public', SetAccess = 'private')
         
         v, E, th;           %Propiedades materiales, módulo de poisson, de elasticidad y espesor
-        D;                  %Matriz de elasticidad
         x, y;               %Vectores 1x3 con las coordenadas x e y de los nodos
         A;                  %Área del elemento
         K;                  %Matriz 9x9 de rigidez explícita
-        KintNum;            %Matriz de rigidez por integración numérica
         
         cargaUnif           %Vector 3x1 de carga total repartida sobre el elemento
         vectorCarga         %Vector 9x1 con las cargas equivalentes de las cargas repartidas para los 3 nodos
         
         ID;                 %Numeración del elemento
         nodos;              %Vector Referencia a los objetos tipo Nodo que pertenecen al elemento
+        IDnodos;            %Vector con la numeración de los nodos que pertenecen al elemento
+        
     end
 
     properties (Access=private) 
@@ -47,7 +47,10 @@ classdef DKTElem < handle
         centro              %centro del triángulo
         LMatriz             %Matriz de coordenadas de área
         alfa                %Matriz B descompuesta en 1/2A*[L]*[alfa]
-        T                   %Matriz de cambio de base
+        T                   %Matriz de giro de los desplazamientos
+        Tmomentos           %Matriz de giro de los momentos
+        ang                 %Ángulo de cambio de base
+        D;                  %Matriz de elasticidad
         
         x12, x23, x31;      %Variables de diferencias entre coordenadas de los nodos xij=xi-xj
         y12, y23, y31;
@@ -70,14 +73,15 @@ classdef DKTElem < handle
             e.y=[nodo1.y nodo2.y nodo3.y];
             e.ID=ID;
             e.nodos=[nodo1, nodo2, nodo3];
+            e.IDnodos=[nodo1.getID() nodo2.getID() nodo3.getID()];
             e.addElementToNodes();
             e.th= thickness;
             e=e.DMat();
             e=e.CalcGeom();
+            e.calcMatricesGiroT();
             e.calcMatrizCoordenadasL();
             e=e.CalcVarsPQRT();
             e=e.calcKStiffnessMatrix();
-            e=e.calcK2StiffnessMatrix();
             e.cargaUnif=[0;0;0];
             end
         end
@@ -166,6 +170,15 @@ methods (Access=public)
             despPunto(3)=L(1)*desp1(3)+L(2)*desp2(3)+L(3)*desp3(3);
         end
         
+        function matrizMomentos=getAllMomentos(e)
+            mat=[];
+            for i=1:3
+                momentos =e.obtenerMomentos([e.x(i) e.y(i)]);
+                mat=[mat momentos];
+            end
+            matrizMomentos=mat;
+        end
+        
         function momentos=obtenerMomentos(e,punto)
             % Se obtiene la aproximación de los momentos de un punto
             % cualquiera del elemento con una interpolación lineal (usando
@@ -181,62 +194,27 @@ methods (Access=public)
             desp1=e.nodos(1).getDesp();
             desp2=e.nodos(2).getDesp();
             desp3=e.nodos(3).getDesp();
-            vectDesp=[desp1;desp2;desp3];
+            vectDespGlobal=[desp1;desp2;desp3];
+            vectDespLocal=[e.T'*desp1;e.T'*desp2;e.T'*desp3];
             
             Bmod=zeros(3,9);
             Bmod(1,1:3)=[1-xi-n xi n];
             Bmod(2,4:6)=[1-xi-n xi n];
             Bmod(3,7:9)=[1-xi-n xi n];
-            Bmod;
-%             aux=[1-xi-n 0 0;0 xi 0;0 0 n];
-%             Bmod=[];
-%             Bmod=[aux aux aux];
-            x21=e.x(2)-e.x(1);
-            y21=e.y(2)-e.y(1);
-            xx=e.x(1)+xi*x21+n*e.x31;
-            yy=e.y(1)+xi*y21+n*e.y31;
-            momentos=e.D*e.B(xi,n)*vectDesp;
-%             momentos=-1/(2*e.A)*e.D*Bmod*e.alfa*vectDesp;
             
-%             momentos=e.T'*momentos
-            tensiones=momentos*12/e.th^2/2;
-            
-      end
-        
-         function e= calcKStiffnessMatrix(e)
-            % Calcula la matriz de rigidez del elemento por integración
-            % numérica según la cuadratura de Gauss de tres puntos
-            
-            xi=[1/2 1/2 0]; %Coordenadas y pesos de Gauss
-            n=[0 1/2 1/2];
-            w=[1/3 1/3 1/3];
-            mat=zeros(9,9);
-            
-            % DEBUGGING!!!!! mirar 40 practicas leccion H p.84
-            for i=1:3
-                for j=1:3
-                    
-                    mat=mat+ w(i)*w(j)*(e.B(xi(i),n(j)))'*e.D*e.B(xi(i),n(j));
-                end
-                
-                %disp(e.B(xi(i), n(j)));
-            end
-            e.KintNum=mat.*2*e.A;
-            
-         end
+            momentosLocal=1/(2*e.A)*e.D*Bmod*e.alfa*vectDespLocal;
+            momentos=e.Tmomentos*momentosLocal;            
+        end       
          
-         function e= calcK2StiffnessMatrix(e)
+         function e= calcKStiffnessMatrix(e)
              % Se calcula la matriz de rigidez del elemento según la
              % formulación explícita propuesta por Batoz, en ejes locales.
              % Con la matriz de cambio de base se pasa a ejes globales
-             
-             %Cálculo del cambio de base
-             vectCoord=[e.x(2)-e.x(1), e.y(2)-e.y(1)];
-             ang=atan(vectCoord(2)/vectCoord(1));
-             T=[1 0 0;0 -sin(ang) cos(ang);0 -cos(ang) -sin(ang)];
-             e.T=T;
-             
+                          
              %Coordenadas y parámetros de interés
+             ang=e.ang;
+             T=e.T;
+             
              x1=0;
              y1=0;
              
@@ -318,7 +296,7 @@ methods (Access=public)
              %las diferentes submatrices de K.
                 for i=1:3
                     for j=1:3
-                        e.K((i-1)*3+1:(i)*3,(j-1)*3+1:(j)*3)=T'*mat((i-1)*3+1:(i)*3,(j-1)*3+1:(j)*3)*T;
+                        e.K((i-1)*3+1:(i)*3,(j-1)*3+1:(j)*3)=T*mat((i-1)*3+1:(i)*3,(j-1)*3+1:(j)*3)*T';
                     end
                 end
          end                            
@@ -510,6 +488,30 @@ end
              e.LMatriz=1/(2*e.A)*[M1;M2;M3];
              
          end
+         
+         function calcMatricesGiroT(e)
+             %Cálculo de las matrices de giro para el paso de coordenadas
+             %locales a globales
+             
+             vectCoord=[e.x(2)-e.x(1), e.y(2)-e.y(1)];
+             ang=acos((vectCoord(1))/(sqrt(vectCoord(1)^2+vectCoord(2)^2)));
+             if (vectCoord(2)<0)
+                 ang=-ang;
+             else
+                 ang;
+             end
+             e.ang=ang;
+             
+             T=[1 0 0;0 cos(ang) -sin(ang);0 sin(ang) cos(ang)];
+             e.T=T;
+             
+             ang=e.ang;
+             aux=[(cos(ang))^2 (sin(ang))^2 -2*cos(ang)*sin(ang)];
+             aux2=[(sin(ang))^2 (cos(ang))^2 2*cos(ang)*sin(ang)];
+             aux3=[cos(ang)*sin(ang) -cos(ang)*sin(ang) (cos(ang))^2-(sin(ang))^2];
+             e.Tmomentos=[aux;aux2;aux3];
+         end
+
          
          function e = CalcGeom(e)
              %Calcula la geometría del elemento. Es decir, las longitudes de

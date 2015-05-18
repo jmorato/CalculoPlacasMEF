@@ -36,16 +36,19 @@ function MainGrafico(calculo)
 creacio_menus % Crea la barra de menús.
 [panel1,logo,grafica_est,editx,edity,editprec]=creacio_panell_grafica; % Crea el panel con la gráfica de edición del programa y las cajas de coordenadas y precision
 
-[resultados]=panel_resultados;                              %Crea el panel de resultados: es el panel 'Padre' de todos los paneles con los gráficos 3d de representacion de resultados
-[resultados_flecha,grafico_flecha]=panel_resultados_flecha; %Crea el panel con el gráfico 3d de resultados de flecha
-[resultados_girox,grafico_girox]=panel_resultados_girox;    %Crea el panel con el gráfico 3d de resultados de giro X
-[resultados_giroy,grafico_giroy]=panel_resultados_giroy;    %Crea el panel con el gráfico 3d de resultados de giro Y
-[resultados_Mx,grafico_Mx]=panel_resultados_Mx;             %Crea el panel con el gráfico 3d de resultados de Momento X
-[resultados_My,grafico_My]=panel_resultados_My;             %Crea el panel con el gráfico 3d de resultados de Momento Y
-[resultados_Mxy,grafico_Mxy]=panel_resultados_Mxy;          %Crea el panel con el gráfico 3d de resultados de Momento XY
+[resultados]=panel_resultados;                                                  %Crea el panel de resultados: es el panel 'Padre' de todos los paneles con los gráficos 3d de representacion de resultados
+[resultados_flecha,grafico_flecha]=panel_resultados_flecha;                     %Crea el panel con el gráfico 3d de resultados de flecha
+[resultados_girox,grafico_girox]=panel_resultados_girox;                        %Crea el panel con el gráfico 3d de resultados de giro X
+[resultados_giroy,grafico_giroy]=panel_resultados_giroy;                        %Crea el panel con el gráfico 3d de resultados de giro Y
+[resultados_Mx,grafico_Mx]=panel_resultados_Mx;                                 %Crea el panel con el gráfico 3d de resultados de Momento X
+[resultados_Mx_alisados,grafico_Mx_alisados]=panel_resultados_Mx_alisados;      %Crea el panel con el gráfico 3d de resultados de Momento X
+[resultados_My,grafico_My]=panel_resultados_My;                                 %Crea el panel con el gráfico 3d de resultados de Momento Y
+[resultados_My_alisados,grafico_My_alisados]=panel_resultados_My_alisados;      %Crea el panel con el gráfico 3d de resultados de Momento Y
+[resultados_Mxy,grafico_Mxy]=panel_resultados_Mxy;                              %Crea el panel con el gráfico 3d de resultados de Momento XY
+[resultados_Mxy_alisados,grafico_Mxy_alisados]=panel_resultados_Mxy_alisados;   %Crea el panel con el gráfico 3d de resultados de Momento XY
 
 [panel2,botoedicio,botoxy,boto3d]=panell_botons_vista; % Crea el panel con los botones que controlan las vistas y edición.
-[panel3,botonumnodos,botoflecha,botogirox,botogiroy,botoMx,botoMy,botoMxy,botoObtDesp]=panell_botons_grafica; % Panel con los botones para seleccionar los elementos que se muestren en la presentación de resultados.
+[panel3,botonumnodos,botoflecha,botogirox,botogiroy,botoMx,botoMy,botoMxy,botoalisar,botoObtDesp]=panell_botons_grafica; % Panel con los botones para seleccionar los elementos que se muestren en la presentación de resultados.
 [panel4,botoCargaPunt,botoContorn,botoMaterial,botoMalla,botoReset,botoCargaUnif,botoCondCont,botoCalcDesp,flagbCon,flagbMat,flagbMalla,flagbCp,flagbCu,distnumnusmalla,flagbCc,flagbCalcDesp]=panel_calculo; %Panel lateral con los botones que envían los datos al programa de cálculo
 [hg_nusos,hg_barres,hg_carreguesbarres,hg_carreganusos,hg_cargasunif]=inicialitza_hg(grafica_est);
 resetflags();
@@ -62,7 +65,7 @@ updatebotons();
         
         menuarxiu=uimenu(figcme2,'Label','Archivo'); % Menú Archivo
         menuayuda=uimenu(figcme2,'Label','Ayuda'); % Menú Ayuda
-        uimenu(menuayuda,'Label','Tutorial (PDF)','Callback',@menututorial); % Submenú tutorial
+        uimenu(menuayuda,'Label','Manual (PDF)','Callback',@menututorial); % Submenú tutorial
         uimenu(menuayuda,'Label','Guía Rápida','Callback',@menuguiarapida); % Submenú tutorial
         uimenu(menuayuda,'Label','Acerca de...','Callback',@menuacerca); % Submenú Acerca de...
         uimenu(menuarxiu,'Label','Nuevo','Callback',@menunou); % Submenú Nuevo
@@ -70,22 +73,12 @@ updatebotons();
     end
 
     function menunou(hObject,eventdata,handles)
-        % S'executa amb el menú 'nou'
-        % Pregunta si es vol guardar i esborra l'estructura.
-        %nou
-%         resp=questdlg('Guardar abans d''esborrar l''estructura?','Nova estructura','Si','No','Cancelar','Si');
-%         switch resp
-%             case 'Si'
-%                 menuguardar
-%                 nou
-%             case 'No'
-%                 nou
-%         end
+        % Resetea la placa
     reset;
     end
     
     function menututorial(hObject,eventdata,handles)
-        open('tutorial.pdf');
+        open('manual.pdf');
     end
 
     function menuguiarapida(hObject,eventdata,handles)
@@ -616,6 +609,9 @@ updatebotons();
             set(resultados_Mx,'Visible','off');
             set(resultados_My,'Visible','off');
             set(resultados_Mxy,'Visible','off');
+            set(resultados_Mx_alisados,'Visible','off');
+            set(resultados_My_alisados,'Visible','off');
+            set(resultados_Mxy_alisados,'Visible','off');
             if get(botonumnodos,'Value')==1
                 set(resultados_flecha,'Visible','on');
             elseif get(botoflecha,'Value')==1
@@ -625,11 +621,23 @@ updatebotons();
             elseif get(botogiroy,'Value')==1
                 set(resultados_giroy,'Visible','on');
             elseif get(botoMx,'Value')==1
-                set(resultados_Mx,'Visible','on');
+                if (get(botoalisar,'Value'))
+                    set(resultados_Mx_alisados,'Visible','on');
+                else
+                    set(resultados_Mx,'Visible','on');
+                end
             elseif get(botoMy,'Value')==1
-                set(resultados_My,'Visible','on');
+                if (get(botoalisar,'Value'))
+                    set(resultados_My_alisados,'Visible','on');
+                else
+                    set(resultados_My,'Visible','on');
+                end
             elseif get(botoMxy,'Value')==1
-                set(resultados_Mxy,'Visible','on');
+                if (get(botoalisar,'Value'))
+                    set(resultados_Mxy_alisados,'Visible','on');
+                else
+                    set(resultados_Mxy,'Visible','on');
+                end
             else
                 set(resultados_flecha,'Visible','on');
             end
@@ -709,6 +717,21 @@ updatebotons();
           view(grafico_Mx,20,70);  
     end
 
+    function [resultados_Mx_alisados,grafico_Mx_alisados]=panel_resultados_Mx_alisados
+        % Creación del panel que incluye el gráfico 3d de Mx. Invisible
+        % por defecto inicialmente
+        
+        resultados_Mx_alisados=uipanel(resultados,'Units','pixels','Position',[5,5,tm-[bwidth+25,10]],'BorderType','etchedin','BorderWidth',1); % Creacio del panell.
+        grafico_Mx_alisados=axes('Parent',resultados_Mx_alisados,'Units','pixels','Position',[36,50,tm-[190,70]],'color','none','MinorGridLineStyle',':','NextPlot','add','Box','on'); 
+        set(resultados_Mx_alisados,'Visible','off');
+
+          xlabel(grafico_Mx_alisados,'X (m)');ylabel(grafico_Mx_alisados,'Y (m)');zlabel(grafico_Mx_alisados,'Momento X (Nm)');
+          title(grafico_Mx_alisados,'Resultados: Momento X','FontWeight','bold','FontSize',14);
+          colorbar_Mx=colorbar('peer',grafico_Mx_alisados);
+          ylabel(colorbar_Mx,'Momento X (Nm)');
+          view(grafico_Mx_alisados,20,70);  
+    end
+
     function [resultados_My,grafico_My]=panel_resultados_My
         % Creación del panel que incluye el gráfico 3d de My. Invisible
         % por defecto inicialmente
@@ -722,6 +745,36 @@ updatebotons();
           colorbar_My=colorbar('peer',grafico_My);
           ylabel(colorbar_My,'Momento Y (Nm)');
           view(grafico_My,20,70);             
+    end
+
+    function [resultados_My_alisados,grafico_My_alisados]=panel_resultados_My_alisados
+        % Creación del panel que incluye el gráfico 3d de My. Invisible
+        % por defecto inicialmente
+        
+        resultados_My_alisados=uipanel(resultados,'Units','pixels','Position',[5,5,tm-[bwidth+25,10]],'BorderType','etchedin','BorderWidth',1); % Creacio del panell.
+        grafico_My_alisados=axes('Parent',resultados_My_alisados,'Units','pixels','Position',[36,50,tm-[190,70]],'color','none','MinorGridLineStyle',':','NextPlot','add','Box','on'); 
+        set(resultados_My_alisados,'Visible','off');
+
+          xlabel(grafico_My_alisados,'X (m)');ylabel(grafico_My_alisados,'Y (m)');zlabel(grafico_My_alisados,'Momento Y (Nm)');
+          title(grafico_My_alisados,'Resultados: Momento Y','FontWeight','bold','FontSize',14);
+          colorbar_My=colorbar('peer',grafico_My_alisados);
+          ylabel(colorbar_My,'Momento Y (Nm)');
+          view(grafico_My_alisados,20,70);             
+    end
+
+    function [resultados_Mxy_alisados,grafico_Mxy_alisados]=panel_resultados_Mxy_alisados
+        % Creación del panel que incluye el gráfico 3d de Mxy. Invisible
+        % por defecto inicialmente
+        
+        resultados_Mxy_alisados=uipanel(resultados,'Units','pixels','Position',[5,5,tm-[bwidth+25,10]],'BorderType','etchedin','BorderWidth',1); % Creacio del panell.
+        grafico_Mxy_alisados=axes('Parent',resultados_Mxy_alisados,'Units','pixels','Position',[36,50,tm-[190,70]],'color','none','MinorGridLineStyle',':','NextPlot','add','Box','on');
+        set(resultados_Mxy_alisados,'Visible','off');
+ 
+          xlabel(grafico_Mxy_alisados,'X (m)');ylabel(grafico_Mxy_alisados,'Y (m)');zlabel(grafico_Mxy_alisados,'Momento XY (Nm)');
+          title(grafico_Mxy_alisados,'Resultados: Momento XY','FontWeight','bold','FontSize',14);
+          colorbar_Mxy=colorbar('peer',grafico_Mxy_alisados);
+          ylabel(colorbar_Mxy,'Momento XY (Nm)');
+          view(grafico_Mxy_alisados,20,70);                
     end
 
     function [resultados_Mxy,grafico_Mxy]=panel_resultados_Mxy
@@ -821,6 +874,8 @@ updatebotons();
                     set(botoCalcDesp,'Enable','off');
                     set(botoObtDesp,'Enable','off');
                     set(get(panel3,'Children'),'Enable','off');
+                    set(botoalisar,'Value',0);
+                    set(botoalisar,'Enable','off');
         else
             %Después de la malla se cancela la introducción de datos y se
             %desactivan los botones de la barra de herramientas. solo se
@@ -858,6 +913,7 @@ updatebotons();
                 set(get(panel3,'Children'),'Enable','on');
                 set(botoedicio,'Value',0);
                 set(botoedicio,'Enable','off');
+                set(botoalisar,'Enable','on');
             end
                 
         end
@@ -1014,19 +1070,21 @@ updatebotons();
 % El panel mostrar contiene los botones que controlan qué resultados se
 % muestran en cada momento
 
-    function [panel3,botonumnodos,botoflecha,botogirox,botogiroy,botoMx,botoMy,botoMxy,botoObtDesp]=panell_botons_grafica
+    function [panel3,botonumnodos,botoflecha,botogirox,botogiroy,botoMx,botoMy,botoMxy,botoalisar,botoObtDesp]=panell_botons_grafica
         % Creación del panel y los botones
 
         panel3=uipanel(figcme2,'Units','pixels','Position',[tm-[bwidth+15,500],bwidth+15,(bheight+5)*3+20],'BorderType','etchedin','BorderWidth',1,'FontName','default','FontUnits','pixels','FontSize',14,'Title','Mostrar:'); % Creacio del panell.
-        botonumnodos=uicontrol(panel3,'Units','pixels','Position',bpos(5),'Style','togglebutton','FontName','default','FontUnits','pixels','FontSize',14,'String','Núm. Nodo','Enable','on','Callback',@numnodos,'Value',1,'KeyPressFcn',@tecla); % Creacio botó vista de càrregues.
-        botoflecha=uicontrol(panel3,'Units','pixels','Position',bpos(4),'Style','togglebutton','FontName','default','FontUnits','pixels','FontSize',14,'String','Desplazamiento','Enable','on','Callback',@flecha,'Value',0,'KeyPressFcn',@tecla); % Creacio botó vista de reaccions.
-        botogirox=uicontrol(panel3,'Units','pixels','Position',bpos(3)+[0,0,-(bwidth-(bwidth-5)/2),0],'Style','togglebutton','FontName','default','FontUnits','pixels','FontSize',14,'String','Giro X','Enable','on','Callback',@girox,'Value',0,'KeyPressFcn',@tecla); % Creacio botó vista de diagrama d'axils.
-        botogiroy=uicontrol(panel3,'Units','pixels','Position',bpos(3)+[(bwidth-5)/2+5,0,-(bwidth-(bwidth-5)/2),0],'Style','togglebutton','FontName','default','FontUnits','pixels','FontSize',14,'String','Giro Y','Enable','on','Callback',@giroy,'Value',0,'KeyPressFcn',@tecla); % Creacio botó vista de diagrama de moments en x.
-        botoMx=uicontrol(panel3,'Units','pixels','Position',bpos(2)+[0,0,-(bwidth-(bwidth-5)/3),0],'Style','pushbutton','FontName','default','FontUnits','pixels','FontSize',14,'String','Mx','Callback',@Mx,'KeyPressFcn',@tecla);
-        botoMy=uicontrol(panel3,'Units','pixels','Position',bpos(2)+[(bwidth-10)/3+5,0,-(bwidth-(bwidth-5)/3),0],'Style','pushbutton','FontName','default','FontUnits','pixels','FontSize',14,'String','My','Callback',@My,'KeyPressFcn',@tecla);
-        botoMxy=uicontrol(panel3,'Units','pixels','Position',bpos(2)+[(bwidth-10)/3*2+10,0,-(bwidth-(bwidth-5)/3),0],'Style','pushbutton','FontName','default','FontUnits','pixels','FontSize',14,'String','Mxy','Callback',@Mxy,'KeyPressFcn',@tecla);
+        botonumnodos=uicontrol(panel3,'Units','pixels','Position',bpos(6),'Style','togglebutton','FontName','default','FontUnits','pixels','FontSize',14,'String','Núm. Nodo','Enable','on','Callback',@numnodos,'Value',1,'KeyPressFcn',@tecla); % Creacio botó vista de càrregues.
+        botoflecha=uicontrol(panel3,'Units','pixels','Position',bpos(5),'Style','togglebutton','FontName','default','FontUnits','pixels','FontSize',14,'String','Desplazamiento','Enable','on','Callback',@flecha,'Value',0,'KeyPressFcn',@tecla); % Creacio botó vista de reaccions.
+        botogirox=uicontrol(panel3,'Units','pixels','Position',bpos(4)+[0,0,-(bwidth-(bwidth-5)/2),0],'Style','togglebutton','FontName','default','FontUnits','pixels','FontSize',14,'String','Giro X','Enable','on','Callback',@girox,'Value',0,'KeyPressFcn',@tecla); % Creacio botó vista de diagrama d'axils.
+        botogiroy=uicontrol(panel3,'Units','pixels','Position',bpos(4)+[(bwidth-5)/2+5,0,-(bwidth-(bwidth-5)/2),0],'Style','togglebutton','FontName','default','FontUnits','pixels','FontSize',14,'String','Giro Y','Enable','on','Callback',@giroy,'Value',0,'KeyPressFcn',@tecla); % Creacio botó vista de diagrama de moments en x.
+        botoMx=uicontrol(panel3,'Units','pixels','Position',bpos(3)+[0,0,-(bwidth-(bwidth-5)/3),0],'Style','togglebutton','FontName','default','FontUnits','pixels','FontSize',14,'String','Mx','Callback',@Mx,'KeyPressFcn',@tecla);
+        botoMy=uicontrol(panel3,'Units','pixels','Position',bpos(3)+[(bwidth-10)/3+5,0,-(bwidth-(bwidth-5)/3),0],'Style','togglebutton','FontName','default','FontUnits','pixels','FontSize',14,'String','My','Callback',@My,'KeyPressFcn',@tecla);
+        botoMxy=uicontrol(panel3,'Units','pixels','Position',bpos(3)+[(bwidth-10)/3*2+10,0,-(bwidth-(bwidth-5)/3),0],'Style','togglebutton','FontName','default','FontUnits','pixels','FontSize',14,'String','Mxy','Callback',@Mxy,'KeyPressFcn',@tecla);
+        botoalisar=uicontrol(panel3,'Units','pixels','Position',bpos(2),'Style','togglebutton','FontName','default','FontUnits','pixels','FontSize',14,'String','Alisar Momentos','Value',0,'Callback',@alisar,'KeyPressFcn',@tecla); % Creació botó edició.
         botoObtDesp=uicontrol(panel3,'Units','pixels','Position',bpos(1),'Style','pushbutton','FontName','default','FontUnits','pixels','FontSize',14,'String','Desp. Punto','Callback',@obtDesp,'KeyPressFcn',@tecla);
-        end
+        
+    end
 
     function numnodos(hObject,eventdata,handles)
         % Se ejecuta cuando se activa el botón Numero de Nodo
@@ -1062,6 +1120,12 @@ updatebotons();
         % Se ejecuta cuando se activa el botón Mxy
         botons_mostrar(0,0,0,0,0,0,1);
     end
+    
+    function alisar(hObject,eventdata,handles)
+   
+        visibilidad_resultados;
+        updatebotons();
+    end
    
     function botons_mostrar(numnodos,flecha,girox,giroy,Mx,My,Mxy)
         %Determina el estado de los botones del panel lateral Mostrar.
@@ -1096,7 +1160,7 @@ updatebotons();
             [desp,momentos, err]=calculo.obtenerDespMomentos(punto);
             
             if err==0
-                str= sprintf('Desplazamientos del punto (%.2f,%.2f):\nflecha= %5.2e m\ngiro X=%5.2e\ngiro Y=%5.2e\n\nMx=%5.2e Nm\nMy=%5.2e Nm\nMxy=%5.2e Nm\n',punto(1),punto(2),desp(1),desp(2),desp(3),momentos(1),momentos(2),momentos(3));
+                str= sprintf('Desplazamientos del punto (%.2f,%.2f):\nflecha= %5.4e m\ngiro X=%5.4e\ngiro Y=%5.4e\n\nMx=%5.4e Nm\nMy=%5.4e Nm\nMxy=%5.4e Nm\n',punto(1),punto(2),desp(1),desp(2),desp(3),momentos(1),momentos(2),momentos(3));
                 h = msgbox(str,'Obtener desplazamiento');  
             else
                 h=errordlg('El punto no pertenece a la placa. Reintentar', 'Obtener desplazamiento');
@@ -1108,6 +1172,7 @@ updatebotons();
         end
             
     end
+        
 
 %% PANEL 4: INTRODUCIR CÁLCULOS. CREACIÓN Y ACCIONES DEL PANEL
 % El panel lateral introducir cálculos actúa de interfaz entre la interfaz
@@ -1200,6 +1265,9 @@ updatebotons();
                 [resultados_Mx,grafico_Mx]=panel_resultados_Mx;             %Crea el panel con el gráfico 3d de resultados de Momento X
                 [resultados_My,grafico_My]=panel_resultados_My;             %Crea el panel con el gráfico 3d de resultados de Momento Y
                 [resultados_Mxy,grafico_Mxy]=panel_resultados_Mxy;          %Crea el panel con el gráfico 3d de resultados de Momento XY
+                [resultados_Mx_alisados,grafico_Mx_alisados]=panel_resultados_Mx_alisados;      %Crea el panel con el gráfico 3d de resultados de Momento X
+                [resultados_My_alisados,grafico_My_alisados]=panel_resultados_My_alisados;      %Crea el panel con el gráfico 3d de resultados de Momento Y
+                [resultados_Mxy_alisados,grafico_Mxy_alisados]=panel_resultados_Mxy_alisados;   %Crea el panel con el gráfico 3d de resultados de Momento XY
                 
                 figcme2_resize;
 
@@ -1256,14 +1324,14 @@ updatebotons();
         end
        contorno=cell(1,0);
        indexCont=0;
-       
+       err=0;
        while length(barresList)>0
        indexCont=indexCont+1;
        nusosCont=[];
        nusosCont=[barresList(1).nusinf;barresList(1).nussup];
        barresList(1)=[];
        i=1;
-       err=0;
+ 
        finished=0;  
            while length(barresList)>0 && finished==0
                if nusosCont(length(nusosCont))==nusosCont(1)
@@ -1340,7 +1408,7 @@ updatebotons();
        end
        
        if continuar==1
-           string=sprintf('Se han añadido %d cargas repartidas a los cálculos',added);
+           string=sprintf('Se han añadido %d cargas puntuales a los cálculos',added);
        h = msgbox(string,'Cargas Puntuales añadidas');
        
        flagbCp=1;
@@ -1494,7 +1562,8 @@ updatebotons();
         calculo.calcularDesplazamientos();
         for i=1:length(nusos)
            nusos(i).desp=calculo.getDesp(i);
-           nusos(i).moment=calculo.getMomentos(i);
+           momentos=calculo.getMomentosNodo(i);
+           nusos(i).moment=[momentos(2) momentos(1) momentos(3)];
         end
             
             % Se recorren todos los elementos de la placa. para cada uno,
@@ -1515,11 +1584,13 @@ updatebotons();
                     coordYnodos(i)=nusos(elementos(j,i)).getY();
                     flecha(i)=nusos(elementos(j,i)).desp(1);
                     girox(i)=nusos(elementos(j,i)).desp(2);
-                    giroy(i)=nusos(elementos(j,i)).desp(3);
-                    mx(i)=nusos(elementos(j,i)).moment(1);
+                    giroy(i)=nusos(elementos(j,i)).desp(3);  
+                                        mx(i)=nusos(elementos(j,i)).moment(1);
                     my(i)=nusos(elementos(j,i)).moment(2);
                     mxy(i)=nusos(elementos(j,i)).moment(3);
                 end
+                momentos=calculo.elementos(j).getAllMomentos();
+                momentos=[momentos momentos(:,1)];
 
                 coordXnodos(length(coordXnodos))=coordXnodos(1);
                 coordYnodos(length(coordYnodos))=coordYnodos(1);
@@ -1535,10 +1606,15 @@ updatebotons();
                 % para su representación en 3D
                 fill3(coordXnodos,coordYnodos,flecha,flecha,'parent',grafico_flecha);
                 fill3(coordXnodos,coordYnodos,girox,girox,'parent',grafico_girox);
-                fill3(coordXnodos,coordYnodos,giroy,giroy,'parent',grafico_giroy);
-                fill3(coordXnodos,coordYnodos,mx,mx,'parent',grafico_Mx);
-                fill3(coordXnodos,coordYnodos,my,my,'parent',grafico_My);
-                fill3(coordXnodos,coordYnodos,mxy,mxy,'parent',grafico_Mxy);   
+                fill3(coordXnodos,coordYnodos,giroy,giroy,'parent',grafico_giroy); 
+                
+                fill3(coordXnodos,coordYnodos,mx,mx,'parent',grafico_Mx_alisados);
+                fill3(coordXnodos,coordYnodos,my,my,'parent',grafico_My_alisados);
+                fill3(coordXnodos,coordYnodos,mxy,mxy,'parent',grafico_Mxy_alisados); 
+                
+                fill3(coordXnodos,coordYnodos,momentos(2,:),momentos(2,:),'parent',grafico_Mx);
+                fill3(coordXnodos,coordYnodos,momentos(1,:),momentos(1,:),'parent',grafico_My);
+                fill3(coordXnodos,coordYnodos,momentos(3,:),momentos(3,:),'parent',grafico_Mxy);   
             end
             
     botons_elements('off','off','off','off','off','off');
@@ -2351,14 +2427,14 @@ updatebotons();
             set(figcme2,'Position',[sc(1:2),tm]);
         end
         if tm(2)<630 % Limita el mínimo vertical
-            sc(2)=sc(2)+tm(2)-630;
-            tm(2)=630;
+            sc(2)=sc(2)+tm(2)-660;
+            tm(2)=660;
             set(figcme2,'Position',[sc(1:2),tm]);
         end
         % Cambia la posición y tamaño de los elementos
         set(panel1,'Position',[9,9,tm-[bwidth+30,15]]);                                             % Panell de la gráfica de edicion
         set(panel2,'Position',[tm-[bwidth+15,172],bwidth+10,(bheight+5)*5+20]);                     % Panel Lateral Vista
-        set(panel3,'Position',[tm-[bwidth+15,172+(bheight+5)*13+30*2],bwidth+10,(bheight+5)*5+20]); % Panel lateral Mostrar
+        set(panel3,'Position',[tm-[bwidth+15,172+(bheight+5)*14+30*2],bwidth+10,(bheight+5)*6+20]); % Panel lateral Mostrar
         set(panel4,'Position',[tm-[bwidth+15,172+(bheight+5)*8+30],bwidth+10,(bheight+5)*8+20]);    % Panel lateral Introducir Calculos
         set(grafica_est,'Position',[36,50,tm-[230,70]]);            %gráfica de edición
         set(logo,'Position',[36,50,tm-[230,70]]);                   %logo de fondo
@@ -2371,6 +2447,9 @@ updatebotons();
         set(resultados_Mx,'Position',resultadosPos);                %Panel del gráfico3D Mx
         set(resultados_My,'Position',resultadosPos);                %Panel del gráfico3D My
         set(resultados_Mxy,'Position',resultadosPos);               %Panel del gráfico3D Mxy
+        set(resultados_Mx_alisados,'Position',resultadosPos);       %Panel del gráfico3D Mx
+        set(resultados_My_alisados,'Position',resultadosPos);       %Panel del gráfico3D My
+        set(resultados_Mxy_alisados,'Position',resultadosPos);      %Panel del gráfico3D Mxy
         
         graficosPos=[100,120,tm-[bwidth+250,200]];
         set(grafico_flecha,'Position',graficosPos);                 %gráfico3D flecha
@@ -2379,6 +2458,9 @@ updatebotons();
         set(grafico_Mx,'Position',graficosPos);                     %gráfico3D Mx
         set(grafico_My,'Position',graficosPos);                     %gráfico3D My
         set(grafico_Mxy,'Position',graficosPos);                    %gráfico3D Mxy    
+        set(grafico_Mx_alisados,'Position',graficosPos);            %gráfico3D Mx
+        set(grafico_My_alisados,'Position',graficosPos);            %gráfico3D My
+        set(grafico_Mxy_alisados,'Position',graficosPos);           %gráfico3D Mxy
  
         centrar
     end
